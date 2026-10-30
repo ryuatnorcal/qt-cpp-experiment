@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QSlider>
 #include <QVBoxLayout>
+#include <QCheckBox>
 
 CounterWindow::CounterWindow(QWidget *parent)
     : QWidget(parent)
@@ -16,6 +17,7 @@ CounterWindow::CounterWindow(QWidget *parent)
     , m_incrementButton(new QPushButton("+1"))
     , m_resetButton(new QPushButton("Reset"))
     , m_statusLabel(new QLabel)
+    , m_lockCheckBox(new QCheckBox("Lock Slider"))
 {
     setWindowTitle("02 - Signals & Slots");
 
@@ -26,6 +28,7 @@ CounterWindow::CounterWindow(QWidget *parent)
     m_valueLabel->setAlignment(Qt::AlignCenter);
 
     m_slider->setRange(0, m_counter->maximum());
+    m_sliderConnection = connect(m_slider, &QSlider::valueChanged, m_counter, &Counter::setValue);
 
     // Layouts can be nested: a horizontal row of buttons inside a vertical stack.
     auto *buttonRow = new QHBoxLayout;
@@ -35,6 +38,7 @@ CounterWindow::CounterWindow(QWidget *parent)
     auto *layout = new QVBoxLayout(this);
     layout->addWidget(m_valueLabel);
     layout->addWidget(m_slider);
+    layout->addWidget(m_lockCheckBox);
     layout->addLayout(buttonRow);
     layout->addWidget(m_statusLabel);
 
@@ -43,12 +47,24 @@ CounterWindow::CounterWindow(QWidget *parent)
     // increment() doesn't take. That's allowed: extra arguments are dropped.
     connect(m_incrementButton, &QPushButton::clicked, m_counter, &Counter::increment);
     connect(m_resetButton, &QPushButton::clicked, m_counter, &Counter::reset);
-    connect(m_slider, &QSlider::valueChanged, m_counter, &Counter::setValue);
+    // connect(m_slider, &QSlider::valueChanged, m_counter, &Counter::setValue);
 
     // --- model -> UI -------------------------------------------------------
     // One signal can drive many slots. They run in the order they were connected.
-    connect(m_counter, &Counter::valueChanged, m_slider, &QSlider::setValue);
+    // connect(m_counter, &Counter::valueChanged, m_slider, &QSlider::setValue);
     connect(m_counter, &Counter::valueChanged, this, &CounterWindow::onValueChanged);
+    connect(m_lockCheckBox, &QCheckBox::toggled, this, [this](bool checked) {
+        if (checked) {
+            // locked: cut the slider -> counter wire
+            // disconnect(m_sliderConnection);
+            m_slider->setEnabled(!checked);
+        } else {
+            // unlocked: wire it back up and keep the new handle
+            m_slider->setEnabled(checked);
+            m_sliderConnection = connect(m_slider, &QSlider::valueChanged,
+                                         m_counter, &Counter::setValue);
+        }
+    });
 
     // A lambda works as a slot too. `this` is the context object, so the
     // connection is removed automatically if the window dies first.

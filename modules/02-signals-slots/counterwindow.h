@@ -6,6 +6,7 @@ class Counter;
 class QLabel;
 class QPushButton;
 class QSlider;
+class QCheckBox;
 
 // In module 01 we built the UI inside main(). Real apps subclass QWidget
 // so the window owns its children and its own logic.
@@ -30,4 +31,7 @@ private:
     QPushButton *m_incrementButton;
     QPushButton *m_resetButton;
     QLabel *m_statusLabel;
+    QCheckBox *m_lockCheckBox;
+    QMetaObject::Connection m_sliderConnection;
+
 };
