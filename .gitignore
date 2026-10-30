@@ -1,0 +1,8 @@
+build/
+out/
+*.user
+*.user.*
+.qtcreator/
+.vs/
+.vscode/
+CMakeUserPresets.json
